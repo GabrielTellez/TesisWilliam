@@ -57,7 +57,7 @@ def TrainModel(timesteps, ndata, initial_distribution):
     scaler = StandardScaler()
 
     features = scaler.fit_transform(features)
-
+# noise hay tambien que reshape
     train_dl, valid_dl, test_feature, test_target = Preprocessing(features, noise)
 
 

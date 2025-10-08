@@ -21,7 +21,7 @@ def ForwardProcessOriginal_no_optimizada(timesteps, initial_data):
     alpha_bar = np.cumprod(alpha)
     times = np.arange(timesteps)
 
-    # TO DO: optimizar: esto se puede hacer más rápidosin dos loops
+    # TO DO: optimizar: esto se puede hacer más rápido sin dos loops
     for i in range(ndata):
 
         # usar np.prod(alpha[:time]) genera un bug pues el primer elemento es 1
