@@ -120,7 +120,7 @@ def train_step(model: torch.nn.Module,
         optimizer.zero_grad()
 
         # 2. Forward pass
-        y_pred = model(X).view(-1)
+        y_pred = model(X)
 
         # 3. Calculate  and accumulate loss
         loss = loss_fn(y_pred, y)
@@ -168,7 +168,7 @@ def test_step(model: torch.nn.Module,
             X, y = X.to(device), y.to(device)
 
             # 1. Forward pass
-            test_pred = model(X).view(-1)
+            test_pred = model(X)
 
             # 2. Calculate and accumulate loss
             loss = loss_fn(test_pred, y)

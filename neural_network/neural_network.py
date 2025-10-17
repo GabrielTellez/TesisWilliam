@@ -26,25 +26,4 @@ class FeedForward(nn.Module):
     for layer in self.model_list:
       x = layer(x)
       
-    return x
-  
-class MiniUnet(nn.Module):
-  def __init__(self):
-    super().__init__()
-    l = []
-    l.append(nn.Conv1d(in_channels=1, out_channels=4, kernel_size=3))
-    l.append(nn.ReLU())
-    l.append(nn.MaxPool1d(kernel_size=2))
-    l.append(nn.Conv1d(in_channels=4, out_channels=8, kernel_size=3))
-    l.append(nn.ReLU())
-    l.append(nn.MaxPool1d(kernel_size=2))
-    l.append(nn.Flatten())
-    l.append(nn.Linear(24,16))
-    l.append(nn.ReLU())
-    l.append(nn.Linear(16,1))
-    self.model_list = nn.ModuleList(l)
-
-  def forward(self,x): 
-    for layer in self.model_list:
-      x = layer(x)
-    return x
+    return x.view(-1)
