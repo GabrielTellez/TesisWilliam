@@ -24,30 +24,49 @@ def Train(learning_rate, model, num_epochs, train_dl, valid_dl):
     loss_hist_valid = np.zeros(num_epochs)
 
     for epoch in range(num_epochs):
+      
+        t_batch_loss = 0
+        v_batch_loss = 0
 
-      model.train()
-# Error: no mezclar train y validation al tiempo. Primero se entrena sobre todo
-# el dataloader y luego se valida.
-      for (x_train_batch, y_train_batch), (x_val_batch, y_val_batch) in zip(train_dl, valid_dl):
+        for x_train_batch, y_train_batch in train_dl:
 
-        train_pred = model(x_train_batch).view(-1)
-            #Define loss function
-        train_loss = loss_fn(train_pred, y_train_batch)
-            #Backpropagation
-        train_loss.backward()
-            #Apply gradient to the weights
-        optimizer.step()
-            #Make gradients zero. Error: debe ir al inicio del bucle
-        optimizer.zero_grad()
+            t_batch_loss += TrainStep(model, x_train_batch, y_train_batch, loss_fn, optimizer)
+    
+        for x_val_batch, y_val_batch in valid_dl:
+         
+            v_batch_loss += ValStep(model, x_val_batch, y_val_batch, loss_fn)
+        
 
-        val_pred = model(x_val_batch).view(-1)
-        val_loss = loss_fn(val_pred, y_val_batch)
-# error: no está promediando sobre todo el batch la loss y solo reporta la del
-# último batch
-        loss_hist_train[epoch] = train_loss.item()
-        loss_hist_valid[epoch] = val_loss.item()
+        loss_hist_train[epoch] = t_batch_loss / len(train_dl)
+        loss_hist_valid[epoch] = v_batch_loss / len(valid_dl)
 
     return loss_hist_train, loss_hist_valid
+
+
+def TrainStep(model, x_batch, y_batch, loss_fn, optimizer):
+
+    model.train()
+
+    train_pred = model(x_batch)
+    train_loss = loss_fn(train_pred, y_batch)
+   
+    train_loss.backward()
+
+    optimizer.step()
+
+    optimizer.zero_grad()
+
+    return train_loss.item()
+
+def ValStep(model, x_batch, y_batch, loss_fn):
+   
+   model.eval()
+
+   val_pred = model(x_batch)
+
+   val_loss = loss_fn(val_pred, y_batch)
+
+   return val_loss.item()
 
 def TrainModel(timesteps, ndata, initial_distribution):
 
@@ -56,10 +75,12 @@ def TrainModel(timesteps, ndata, initial_distribution):
     features, noise = GenerateNoisedData(timesteps, ndata, initial_distribution)
 
     features = features.reshape(-1,2)
+    noise = noise.reshape(-1)
+    
     scaler = StandardScaler()
 
     features = scaler.fit_transform(features)
-# noise hay tambien que reshape
+
     train_dl, valid_dl, test_feature, test_target = Preprocessing(features, noise)
 
 
@@ -68,7 +89,7 @@ def TrainModel(timesteps, ndata, initial_distribution):
                                            train_dl=train_dl, valid_dl=valid_dl
                                            )
 
-    pred = model(test_feature).view(-1)
+    pred = model(test_feature)
 
     loss_fn = nn.MSELoss()
 
@@ -120,7 +141,7 @@ def train_step(model: torch.nn.Module,
         optimizer.zero_grad()
 
         # 2. Forward pass
-        y_pred = model(X).view(-1)
+        y_pred = model(X)
 
         # 3. Calculate  and accumulate loss
         loss = loss_fn(y_pred, y)
@@ -168,7 +189,7 @@ def test_step(model: torch.nn.Module,
             X, y = X.to(device), y.to(device)
 
             # 1. Forward pass
-            test_pred = model(X).view(-1)
+            test_pred = model(X)
 
             # 2. Calculate and accumulate loss
             loss = loss_fn(test_pred, y)
